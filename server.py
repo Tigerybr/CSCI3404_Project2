@@ -17,10 +17,12 @@ import socket
 import os
 import hashlib
 import uuid
-
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import AES
 
 host = "localhost"
 port = 10001
+iv = "FODKRIOF03DPEOSD"
 
 
 # A helper function. It may come in handy when performing symmetric encryption
@@ -31,19 +33,26 @@ def pad_message(message):
 # Write a function that decrypts a message using the server's private key
 def decrypt_key(session_key):
     # TODO: Implement this function
-    pass
+    opened_file = open('TheKeys/Keys', 'rb')
+    PrivateKey = RSA.importKey(opened_file.read())
+    opened_file.close()
+    return PrivateKey.decrypt(session_key)
 
 
 # Write a function that decrypts a message using the session key
 def decrypt_message(client_message, session_key):
     # TODO: Implement this function
-    pass
+    aes = AES.new(session_key, AES.MODE_CBC, iv)
+    return aes.decrypt(client_message)
+
 
 
 # Encrypt a message using the session key
 def encrypt_message(message, session_key):
     # TODO: Implement this function
-    pass
+    aes = AES.new(session_key, AES.MODE_CBC, iv)
+    return aes.encrypt(message)
+
 
 
 # Receive 1024 bytes from the client
@@ -72,6 +81,7 @@ def verify_hash(user, password):
             if line[0] == user:
                 # TODO: Generate the hashed password
                 # hashed_password =
+                hashed_password = hashlib.sha512((password + line[1]).encode()).hexdigest()
                 return hashed_password == line[2]
         reader.close()
     except FileNotFoundError:
@@ -109,11 +119,15 @@ def main():
                 ciphertext_message = receive_message(connection)
 
                 # TODO: Decrypt message from client
-
+                plaintext_message = decrypt_message(ciphertext_message, plaintext_key)
                 # TODO: Split response from user into the username and password
-
+                user, password = plaintext_message.split()
+                if verify_hash(user, password):
+                    plaintext_resp = "User authenticated successfully!"
+                else:
+                    plaintext_resp = "Username or password incorrect."
                 # TODO: Encrypt response to client
-
+                ciphertext_response = encrypt_message(pad_message(plaintext_resp), plaintext_key)
                 # Send encrypted response
                 send_message(connection, ciphertext_response)
             finally:

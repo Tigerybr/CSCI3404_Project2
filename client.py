@@ -18,11 +18,13 @@ import socket
 import os
 import hashlib
 import uuid
-
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import AES
 
 
 host = "localhost"
 port = 10001
+iv = "FODKRIOF03DPEOSD"
 
 
 # A helper function that you may find useful for AES encryption
@@ -41,21 +43,32 @@ def generate_key():
 # Takes an AES session key and encrypts it using the appropriate
 # key and return the value
 def encrypt_handshake(session_key):
-    # TODO: Implement this function
-    pass
+
+    #open key file
+    key_file = open('TheKeys/Pubkeys.pub', 'rb')
+
+    #read the key
+    Public_key = RSA.importKey(key_file.read())
+
+    #close the file
+    key_file.close()
+
+    #encrypt the key
+    key_encrypted = Public_key.encrypt(session_key, 32)[0]
+
+    return key_encrypted
 
 
 # Encrypts the message using AES. Same as server function
 def encrypt_message(message, session_key):
-    # TODO: Implement this function
-    pass
+    aes = AES.new(session_key, AES.MODE_CBC, iv)
+    return aes.encrypt(message)
 
 
 # Decrypts the message using AES. Same as server function
 def decrypt_message(message, session_key):
-    # TODO: Implement this function
-    pass
-
+    aes = AES.new(session_key, AES.MODE_CBC, iv)
+    return aes.decrypt(message)
 
 # Sends a message over TCP
 def send_message(sock, message):
@@ -98,9 +111,17 @@ def main():
             print("Couldn't connect to server")
             exit(0)
 
-        # TODO: Encrypt message and send to server
+        
+        #Encrypt message and send to server
+        message_encrypted = encrypt_message(pad_message(message), key)
+        send_message(sock, message_encrypted)
 
-        # TODO: Receive and decrypt response from server
+
+        message_received = receive_message(sock)
+        message_decrypted = decrypt_message(message_received, key)
+
+        print(message_decrypted.decode('utf-8'))
+
     finally:
         print('closing socket')
         sock.close()
