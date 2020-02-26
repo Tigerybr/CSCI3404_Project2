@@ -33,7 +33,7 @@ def pad_message(message):
 # Write a function that decrypts a message using the server's private key
 def decrypt_key(session_key):
     # TODO: Implement this function
-    opened_file = open('TheKeys/Keys', 'rb')
+    opened_file = open('TheKeys/rsa.private', 'rb')
     PrivateKey = RSA.importKey(opened_file.read())
     opened_file.close()
     return PrivateKey.decrypt(session_key)
@@ -52,7 +52,6 @@ def encrypt_message(message, session_key):
     # TODO: Implement this function
     aes = AES.new(session_key, AES.MODE_CBC, iv)
     return aes.encrypt(message)
-
 
 
 # Receive 1024 bytes from the client
@@ -76,13 +75,14 @@ def send_message(connection, data):
 def verify_hash(user, password):
     try:
         reader = open("passfile.txt", 'r')
+
         for line in reader.read().split('\n'):
             line = line.split("\t")
-            if line[0] == user:
-                # TODO: Generate the hashed password
-                # hashed_password =
-                hashed_password = hashlib.sha512((password + line[1]).encode()).hexdigest()
+            if line[0] == user.decode('utf-8'):
+
+                hashed_password = hashlib.sha512((password + line[1].encode('utf-8'))).hexdigest()
                 return hashed_password == line[2]
+
         reader.close()
     except FileNotFoundError:
         return False
@@ -121,6 +121,7 @@ def main():
                 # TODO: Decrypt message from client
                 plaintext_message = decrypt_message(ciphertext_message, plaintext_key)
                 # TODO: Split response from user into the username and password
+
                 user, password = plaintext_message.split()
                 if verify_hash(user, password):
                     plaintext_resp = "User authenticated successfully!"

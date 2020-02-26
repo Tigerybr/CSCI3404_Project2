@@ -45,7 +45,7 @@ def generate_key():
 def encrypt_handshake(session_key):
 
     #open key file
-    key_file = open('TheKeys/Pubkeys.pub', 'rb')
+    key_file = open('TheKeys/rsa.public', 'rb')
 
     #read the key
     Public_key = RSA.importKey(key_file.read())
