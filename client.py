@@ -25,6 +25,7 @@ from Crypto.Cipher import AES
 host = "localhost"
 port = 10001
 iv = "FODKRIOF03DPEOSD"
+#I think we can randomly generate this IV
 
 
 # A helper function that you may find useful for AES encryption
